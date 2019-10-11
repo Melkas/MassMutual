@@ -2,14 +2,19 @@ package stepDefinitions;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
+
+import java.sql.Time;
 import java.text.ParseException;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
+
 import org.junit.Assert;
 import org.openqa.selenium.WebDriver;
 import cucumber.api.DataTable;
 import cucumber.api.java.en.Given;
 import cucumber.api.java.en.When;
 import pageObjects.AssessmentPage;
+import utilities.ConfigurationReader;
 import utilities.Driver;
 import utilities.ParsCurrency;
 import utilities.ValidateCurrency;
@@ -21,7 +26,9 @@ public class Steps {
 
 	@Given("^Navigate to page \"([^\"]*)\"$")
 	public void navigate_to_page(String pageURL)  {
-		driver.get(pageURL);
+		driver.get(ConfigurationReader.getProperty("pageURL"));
+		driver.manage().window().maximize();
+		driver.manage().timeouts().implicitlyWait(5, TimeUnit.SECONDS);
 
 	}
 
