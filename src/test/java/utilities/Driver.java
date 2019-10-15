@@ -23,10 +23,6 @@ public class Driver {
 				WebDriverManager.chromedriver().setup();
 				driver = new ChromeDriver();
 				ChromeOptions option = new ChromeOptions();
-				option.setExperimentalOption("use Automation Extensition",false );
-				option.addArguments("disable-infobar");
-				option.addArguments("disable-extensions");
-				option.addArguments("disable-popup-blocking");
                 DesiredCapabilities caps = DesiredCapabilities.chrome();
 				caps.setPlatform(Platform.ANY);
 				
@@ -46,6 +42,7 @@ public class Driver {
 
 	public static void closeDriver() {
 		if (driver != null) {
+			driver.close();
 			driver.quit();
 			driver = null;
 		}

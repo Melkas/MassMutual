@@ -10,7 +10,7 @@ public class ConfigurationReader {
 	static{
 		try {
 			properties = new Properties();
-			FileInputStream inputStream = new FileInputStream("./configuration.properties");
+			FileInputStream inputStream = new FileInputStream("/Users/Mustafa/eclipse-workspace/MassMutualAssessment/configuration/configration.properties");
 			properties.load(inputStream);
 			
 			
@@ -23,4 +23,12 @@ public class ConfigurationReader {
 	public static String getProperty(String key){
 		return properties.getProperty(key);
 	}
+	
+	public static String getReportConfigPath(){
+		String reportConfigPath = properties.getProperty("reportConfigPath");
+		if(reportConfigPath!= null) return reportConfigPath;
+		else throw new RuntimeException("Report Config Path not specified in the Configuration.properties file for the Key:reportConfigPath");		
+	}
+	
+	
 }

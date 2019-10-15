@@ -1,23 +1,27 @@
 package utilities;
 
-
 public class ValidateCurrency {
-	
-	public static boolean valCurrency (String value) {
-		
+
+	public static boolean valCurrency(String value) {
+
 		char firstchar = value.charAt(0);
-		if (firstchar !='$') {
-			 return false;
+		char secondchar = value.charAt(1);
+
+		if (firstchar != '$'  && firstchar !='-') {
+			return false;
+		} else if (firstchar == '-' && secondchar != '$') {
+			return false;
+
+		} else if (firstchar == '-' && secondchar == '$') {
+			value = value.substring(2);
+		} else if (firstchar == '$') {
+			value = value.substring(1);
 		}
-		else {
-			value= value.substring(1); 
-		}     
-		System.out.println(value);
-		if(value.matches("([0-9]{1,3}\\,)*[0-9]{1,3}\\.[0-9]{2}")) {
-			return true;			
-		} 
-	    else {
-	    	return false;
-	    } 
+
+		if (value.matches("([0-9]{1,3}\\,)*[0-9]{1,3}\\.[0-9]{2}")) {
+			return true;
+		} else {
+			return false;
+		}
 	}
 }

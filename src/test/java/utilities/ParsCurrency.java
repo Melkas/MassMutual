@@ -5,20 +5,21 @@ import java.text.ParseException;
 import java.util.Locale;
 
 public class ParsCurrency {
+
+	public static double getDouble(String value) {
+
+		Locale locale = Locale.US;
+		double number = 0;
+
+		try {
+			number = NumberFormat.getCurrencyInstance(locale).parse(value).doubleValue();
+
+		} catch (ParseException e) {
+			e.getMessage();
 	
-	public static double getDouble (String value) throws ParseException {
-	   
-		   
-			 Locale locale = Locale.US;
-			 Number number = NumberFormat.getCurrencyInstance(locale).parse(value);
-			 
-			 return number.doubleValue();
-				  
+		}
+		return number;
 	}
 	
 
-		
 }
-	
-	
-

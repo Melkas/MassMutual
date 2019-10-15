@@ -1,5 +1,7 @@
 package pageObjects;
 
+import java.util.List;
+
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
@@ -33,5 +35,13 @@ public class AssessmentPage {
 	@FindBy(how = How.ID, using = "txt_ttl_val") 
 	public WebElement TotalBalance;
 
-
+	@FindBy(xpath="//*[contains(@id,'txt_val') or contains(@id,'txt_ttl')]")
+    public List<WebElement> values;
+	
+	@FindBy(xpath="//*[contains(@id,'lbl_val') or contains(@id,'lbl_ttl')]")
+	public List<WebElement> valueTexts;
+	
+	
+	
 }
+

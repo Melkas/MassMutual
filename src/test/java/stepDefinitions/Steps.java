@@ -2,113 +2,153 @@ package stepDefinitions;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
-
-import java.sql.Time;
 import java.text.ParseException;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-
-import org.junit.Assert;
 import org.openqa.selenium.WebDriver;
-import cucumber.api.DataTable;
+import org.testng.asserts.SoftAssert;
+
+import com.vimalselvam.cucumber.listener.Reporter;
+
+import cucumber.api.java.After;
 import cucumber.api.java.en.Given;
+import cucumber.api.java.en.Then;
 import cucumber.api.java.en.When;
 import pageObjects.AssessmentPage;
+import utilities.CompareValues;
 import utilities.ConfigurationReader;
 import utilities.Driver;
 import utilities.ParsCurrency;
 import utilities.ValidateCurrency;
 
 public class Steps {
+    
 	
-	WebDriver driver= Driver.getDriver();
-	AssessmentPage assessmentPage= new AssessmentPage(driver);
+	WebDriver driver = Driver.getDriver();
+	AssessmentPage assessmentPage = new AssessmentPage(driver);
+	private Map<String, String> data;
+	private Map<String, String> data2;
+	
+	
 
 	@Given("^Navigate to page \"([^\"]*)\"$")
-	public void navigate_to_page(String pageURL)  {
-		driver.get(ConfigurationReader.getProperty("pageURL"));
-		driver.manage().window().maximize();
-		driver.manage().timeouts().implicitlyWait(5, TimeUnit.SECONDS);
-
-	}
-
-	@When("^verify value table as below$")
-	public void verify_value_table_as_below(DataTable table)  {
-       
-		/* TextBox value attribute name had not given.
-		 * I don't use  assessmentPage.Value1.getAttribute(?);  	
-		*/
+	public void navigate_to_page(String pageURL) {
+		String path = System.getProperty("user.dir");
+		if (ConfigurationReader.getProperty("pageURL").equals("mockUpURL")) {
+			path="file://"+path+"/src/main/java/index.html";	
 		
-		Map<String, String> data = table.asMap(String.class, String.class);
-		Assert.assertEquals(data.get("Value1"), assessmentPage.Value1.getText().trim());
-		Assert.assertEquals(data.get("Value2"), assessmentPage.Value2.getText().trim());
-		Assert.assertEquals(data.get("Value3"), assessmentPage.Value3.getText().trim());
-		Assert.assertEquals(data.get("Value4"), assessmentPage.Value4.getText().trim());
-		Assert.assertEquals(data.get("Value5"), assessmentPage.Value5.getText().trim());
+		}else {
+			path=ConfigurationReader.getProperty("pageURL");
+		
+		}	
+	
+		driver.get(path);
+		driver.manage().window().maximize();
+		driver.manage().timeouts().implicitlyWait(Integer.parseInt(ConfigurationReader.getProperty("timeOut")), TimeUnit.SECONDS);
+	
 
 	}
 
-	@When("verify the values on the screen are greater than (\\d+)$")
-	public void verify_the_values_on_the_screen_are_greater_than(int arg1)  {
-		try {
-			assertTrue(ParsCurrency.getDouble((assessmentPage.Value1.getText().trim())) > arg1);
-			assertTrue(ParsCurrency.getDouble((assessmentPage.Value2.getText().trim())) > arg1);
-			assertTrue(ParsCurrency.getDouble((assessmentPage.Value3.getText().trim())) > arg1);
-			assertTrue(ParsCurrency.getDouble((assessmentPage.Value4.getText().trim())) > arg1);
-			assertTrue(ParsCurrency.getDouble((assessmentPage.Value5.getText().trim())) > arg1);
-			assertTrue(ParsCurrency.getDouble((assessmentPage.TotalBalance.getText().trim())) > arg1);
-
-		} catch (ParseException e) {
-			e.printStackTrace();
-			System.out.println("Invalid value");
-			assertTrue(false);
-		}
+	@Given("^right count values table as below$")
+	public void right_count_values_table_as_below(Map<String, String> data) throws Throwable {
+		this.data = data;
 
 	}
 
-	@When("^verify the total balance is correct based on the values listed on the screen$")
-	public void verify_the_total_balance_is_correct_based_on_the_values_listed_on_the_screen(DataTable table) {
-		try {
-			Map<String, String> data = table.asMap(String.class, String.class);
-			Assert.assertEquals(data.get("TotalBalance"), assessmentPage.TotalBalance.getText());
-		} catch (Exception e) {
-			e.printStackTrace();
-			System.out.println("Invalid value");
-			assertTrue(false);
+	@Then("^values shouldbe same appear on the screen$")
+	public void values_shouldbe_same_appear_on_the_screen() throws Throwable {
+		SoftAssert sa = new SoftAssert();
+		sa.assertTrue(CompareValues.compareValueEquality(data.get("Value 1"), assessmentPage.Value1.getAttribute("value"), " Value1 does not match"));
+		sa.assertTrue(CompareValues.compareValueEquality(data.get("Value 2"), assessmentPage.Value2.getAttribute("value"), " Value2 does not match"));
+		sa.assertTrue(CompareValues.compareValueEquality(data.get("Value 3"), assessmentPage.Value3.getAttribute("value"), " Value3 does not match"));
+		sa.assertTrue(CompareValues.compareValueEquality(data.get("Value 4"), assessmentPage.Value4.getAttribute("value"), " Value4 does not match"));
+		sa.assertTrue(CompareValues.compareValueEquality(data.get("Value 5"), assessmentPage.Value5.getAttribute("value"), " Value5 does not match"));
+		sa.assertTrue(CompareValues.compareValueEquality(data.get("Total Balance"),assessmentPage.TotalBalance.getAttribute("value")," Total Balance does not match"));
+		sa.assertAll();
+	}
 
+	@Then("verify the values on the screen are greater than (\\d+)$")
+	public void verify_the_values_on_the_screen_are_greater_than(int arg1) throws ParseException {
+
+		SoftAssert sa = new SoftAssert();
+	    if(assessmentPage.values.size()!=0) {
+		for (int i = 0; i < assessmentPage.values.size(); i++) {
+            
+			if (CompareValues.isGreater(assessmentPage.values.get(i).getAttribute("value").trim())) {
+				continue;
+			} else {
+				Reporter.addStepLog(assessmentPage.valueTexts.get(i).getText() + " is not greater than 0 or not valit format");
+				System.out.println(assessmentPage.valueTexts.get(i).getText() + " is not greater than 0 or not valit format");
+				sa.assertTrue(false);
+			}
 		}
+	    }else {
+	    	 assertTrue(false);
+	    }
+		sa.assertAll();
+	}
+
+	@Then("^verify the total balance is correct based on the values listed on the screen$")
+	public void verify_the_total_balance_is_correct_based_on_the_values_listed_on_the_screen() throws Throwable {
+
+		double totalBalance = ParsCurrency.getDouble(assessmentPage.TotalBalance.getAttribute("value").trim());
+		double sumValues = ParsCurrency.getDouble(assessmentPage.Value1.getAttribute("value"))
+				+ ParsCurrency.getDouble(assessmentPage.Value2.getAttribute("value").trim())
+				+ ParsCurrency.getDouble(assessmentPage.Value3.getAttribute("value").trim())
+				+ ParsCurrency.getDouble(assessmentPage.Value4.getAttribute("value").trim())
+				+ ParsCurrency.getDouble(assessmentPage.Value5.getAttribute("value").trim());
+
+		
+		assertEquals(sumValues, totalBalance);
+
 	}
 
 	@When("^verify the values are formatted as currencies$")
 	public void verify_the_values_are_formatted_as_currencies() {
-
-		assertTrue(ValidateCurrency.valCurrency(assessmentPage.Value1.getText().trim()));
-		assertTrue(ValidateCurrency.valCurrency(assessmentPage.Value2.getText().trim()));
-		assertTrue(ValidateCurrency.valCurrency(assessmentPage.Value3.getText().trim()));
-		assertTrue(ValidateCurrency.valCurrency(assessmentPage.Value4.getText().trim()));
-		assertTrue(ValidateCurrency.valCurrency(assessmentPage.Value5.getText().trim()));
-		assertTrue(ValidateCurrency.valCurrency(assessmentPage.TotalBalance.getText()));
+		SoftAssert sa = new SoftAssert();
+		 if(assessmentPage.values.size()!=0) {
+		for (int i = 0; i < assessmentPage.values.size(); i++) {
+      
+			if (ValidateCurrency.valCurrency((assessmentPage.values.get(i).getAttribute("value").trim()))) {
+				continue;
+			} else {
+				Reporter.addStepLog(assessmentPage.valueTexts.get(i).getText().trim() + " is not valid formatted as currencies");
+				System.out.println(
+						assessmentPage.valueTexts.get(i).getText().trim() + " is not valid formatted as currencies");
+				sa.assertTrue(false);
+			}
+		}
+		 }else {
+			 assertTrue(false);
+		 }
+		sa.assertAll();
 	}
 
-	@When("^verify the total balance matches the sum of the values$")
-	public void verify_the_total_balance_matches_the_sum_of_the_values() {
-		double sum = 0.0;
+	@Given("^values table as below$")
+	public void values_table_as_below(Map<String, String> data2) throws Throwable {
+		
+		this.data2 = data2;
 
-		try {
-			sum = ParsCurrency.getDouble(assessmentPage.Value1.getText())
-					+ ParsCurrency.getDouble(assessmentPage.Value2.getText().trim())
-					+ ParsCurrency.getDouble(assessmentPage.Value3.getText().trim())
-					+ ParsCurrency.getDouble(assessmentPage.Value4.getText().trim())
-					+ ParsCurrency.getDouble(assessmentPage.Value5.getText().trim());
+	}
 
-			assertEquals(sum, ParsCurrency.getDouble(assessmentPage.TotalBalance.getText().trim()));
-
-		} catch (ParseException e) {
-			e.printStackTrace();
-			System.out.println("Invalid value");
-			assertTrue(false);
+	@Then("^values sum shouldbe same Total Balance that appear on the screen$")
+	public void values_sum_shouldbe_same_Total_Balance_that_appear_on_the_screen() throws Throwable {
+		double sum = 0;
+		double totalBalance = ParsCurrency.getDouble(assessmentPage.TotalBalance.getAttribute("value").trim());
+		for (String key : data2.keySet()) {
+			sum += ParsCurrency.getDouble(data2.get(key));
 
 		}
+		assertEquals(sum,totalBalance);
 	}
 
+	
+	
+	@After
+	public void afterScenario() throws InterruptedException 
+	{ 
+	    Thread.sleep(2000);
+		Driver.closeDriver();
+	}	
+	
 }
